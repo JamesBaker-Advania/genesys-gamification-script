@@ -44,11 +44,11 @@ foreach ($agentId in $agentIds) {
         }
     ) | ConvertTo-Json -Depth 10
     
-    # Post the metric
+    # Post the metric using gc.exe (Genesys CLI)
     Write-Host "Posting metric for Agent: $agentId" -ForegroundColor White
     
     try {
-        $result = gcloud analytics post externalmetrics "body=$payload" 2>&1
+        $result = & gc.exe analytics post externalmetrics "body=$payload" 2>&1
         Write-Host "✓ Success - Total Sales Value: $value" -ForegroundColor Green
         $successCount++
     } catch {
