@@ -1,8 +1,8 @@
 # Genesys Gamification External Metric Populator
-# Uses gc.exe to make authenticated API v2 calls
+# Uses gc.exe employeeperformance externalmetrics data create command
 # Region: DE (mypurecloud.de)
 
-$externalMetricId = "800fb024-26d2-46f4-96e0-95a6ab170695"
+$metricId = "800fb024-26d2-46f4-96e0-95a6ab170695"
 $agentIds = @(
     "a481eb96-4b65-455a-91ff-6dd0d30524de",
     "9e147adf-14d6-4910-8c23-c6dedef0db58",
@@ -22,40 +22,63 @@ Write-Host "Metric: Total Sales Value" -ForegroundColor Yellow
 Write-Host "Timestamp: $date" -ForegroundColor Yellow
 Write-Host "Agents: $($agentIds.Count)" -ForegroundColor Yellow
 Write-Host "Region: DE (mypurecloud.de)" -ForegroundColor Yellow
+Write-Host "Endpoint: /api/v2/employeeperformance/externalmetrics/data" -ForegroundColor Yellow
 Write-Host ""
 
+# Build items array
+$items = @()
 foreach ($agentId in $agentIds) {
     $value = Get-Random -Minimum 100 -Maximum 601
     
-    $body = @{
+    $item = @{
         userId = $agentId
-        externalMetricDefinitionId = $externalMetricId
+        metricId = $metricId
         dateOccurred = $date
         value = $value
-    } | ConvertTo-Json
+    }
+    $items += $item
     
-    Write-Host "Posting metric for Agent: $agentId" -ForegroundColor White
+    Write-Host "Preparing metric for Agent: $agentId" -ForegroundColor White
     Write-Host "Value: $value" -ForegroundColor White
-    Write-Host "Payload: $body" -ForegroundColor Gray
-    
-    try {
-        # Use gc.exe to make the API call with authenticated session
-        $response = & gc.exe patch /api/v2/gamification/metrics/external --body $body 2>&1
-        Write-Host "Response: $response" -ForegroundColor Gray
-        Write-Host "Success - Total Sales Value: $value" -ForegroundColor Green
-        $successCount = $successCount + 1
-    }
-    catch {
-        Write-Host "Failed to post metric for Agent: $agentId" -ForegroundColor Red
-        Write-Host "Error: $_" -ForegroundColor Red
-        $failCount = $failCount + 1
-    }
-    
-    Write-Host ""
 }
 
+# Create request body
+$requestBody = @{
+    items = $items
+}
+
+$jsonBody = $requestBody | ConvertTo-Json -Depth 10
+Write-Host "" 
+Write-Host "Full Payload:" -ForegroundColor Cyan
+Write-Host $jsonBody -ForegroundColor Gray
+Write-Host ""
+
+# Save to temporary file
+$tempFile = "$env:TEMP\metric_payload_$(Get-Random).json"
+$jsonBody | Out-File -FilePath $tempFile -Encoding UTF8
+
+Write-Host "Posting all metrics to Genesys Cloud..." -ForegroundColor Cyan
+Write-Host ""
+
+try {
+    # Use gc.exe to make the API call with authenticated session
+    $response = & gc.exe employeeperformance externalmetrics data create --file $tempFile --outputformat json 2>&1
+    Write-Host "Response: $response" -ForegroundColor Green
+    Write-Host "Success - Metrics posted!" -ForegroundColor Green
+    $successCount = $agentIds.Count
+}
+catch {
+    Write-Host "Failed to post metrics" -ForegroundColor Red
+    Write-Host "Error: $_" -ForegroundColor Red
+    $failCount = $agentIds.Count
+}
+finally {
+    # Clean up temp file
+    Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
+}
+
+Write-Host ""
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "Results:" -ForegroundColor Yellow
-Write-Host "Successful: $successCount" -ForegroundColor Green
-Write-Host "Failed: $failCount" -ForegroundColor Red
+Write-Host "Metrics Submitted: $($agentIds.Count)" -ForegroundColor Green
 Write-Host "=========================================" -ForegroundColor Cyan
