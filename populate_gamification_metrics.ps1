@@ -1,12 +1,7 @@
-# Genesys Gamification External Metric Populator (PowerShell)
-# 
-# This script populates the "Total Sales Value" gamification metric for 5 agents
-# with random values between 100-600 for mockup and demo purposes.
+# Genesys Gamification External Metric Populator
+# Populates "Total Sales Value" metric for 5 agents with random values (100-600)
 
-# Configuration
 $externalMetricId = "800fb024-26d2-46f4-96e0-95a6ab170695"
-
-# Array of 5 agent User IDs
 $agentIds = @(
     "a481eb96-4b65-455a-91ff-6dd0d30524de",
     "9e147adf-14d6-4910-8c23-c6dedef0db58",
@@ -15,8 +10,9 @@ $agentIds = @(
     "0d34f0b7-fad1-47d0-b593-964d44b265a2"
 )
 
-# Get current timestamp
 $date = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.000Z"
+$successCount = 0
+$failCount = 0
 
 Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "Genesys Gamification Metric Populator" -ForegroundColor Cyan
@@ -26,15 +22,9 @@ Write-Host "Timestamp: $date" -ForegroundColor Yellow
 Write-Host "Agents: $($agentIds.Count)" -ForegroundColor Yellow
 Write-Host ""
 
-# Loop through each agent and post a metric
-$successCount = 0
-$failCount = 0
-
 foreach ($agentId in $agentIds) {
-    # Generate random value between 100-600
     $value = Get-Random -Minimum 100 -Maximum 601
     
-    # Create JSON payload for this agent
     $payload = @(
         @{
             userId = $agentId
@@ -44,14 +34,14 @@ foreach ($agentId in $agentIds) {
         }
     ) | ConvertTo-Json -Depth 10
     
-    # Post the metric using gc.exe (Genesys CLI)
     Write-Host "Posting metric for Agent: $agentId" -ForegroundColor White
     
     try {
-        $result = & gc.exe analytics post externalmetrics "body=$payload" 2>&1
+        & gc.exe analytics post externalmetrics "body=$payload"
         Write-Host "✓ Success - Total Sales Value: $value" -ForegroundColor Green
         $successCount++
-    } catch {
+    }
+    catch {
         Write-Host "✗ Failed to post metric for Agent: $agentId" -ForegroundColor Red
         Write-Host "Error: $_" -ForegroundColor Red
         $failCount++
