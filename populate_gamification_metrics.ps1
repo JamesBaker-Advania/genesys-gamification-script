@@ -30,9 +30,12 @@ foreach ($agentId in $agentIds) {
     }) | ConvertTo-Json -Depth 10
     
     Write-Host "Posting metric for Agent: $agentId" -ForegroundColor White
+    Write-Host "Value: $value" -ForegroundColor White
+    Write-Host "Payload: $payload" -ForegroundColor Gray
     
     try {
-        & gc.exe analytics post externalmetrics "body=$payload"
+        $response = & gc.exe analytics post externalmetrics "body=$payload" 2>&1
+        Write-Host "Response: $response" -ForegroundColor Gray
         Write-Host "Success - Total Sales Value: $value" -ForegroundColor Green
         $successCount = $successCount + 1
     }
