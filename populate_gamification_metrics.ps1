@@ -1,5 +1,6 @@
 # Genesys Gamification External Metric Populator
 # Uses PowerShell Invoke-RestMethod to call Genesys Cloud API v2
+# Region: DE (mypurecloud.de)
 
 $externalMetricId = "800fb024-26d2-46f4-96e0-95a6ab170695"
 $agentIds = @(
@@ -10,7 +11,7 @@ $agentIds = @(
     "0d34f0b7-fad1-47d0-b593-964d44b265a2"
 )
 
-$apiUrl = "https://api.mypurecloud.com/api/v2/gamification/metrics/external"
+$apiUrl = "https://api.mypurecloud.de/api/v2/gamification/metrics/external"
 $date = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.000Z"
 $successCount = 0
 $failCount = 0
@@ -22,6 +23,7 @@ Write-Host "Metric: Total Sales Value" -ForegroundColor Yellow
 Write-Host "Timestamp: $date" -ForegroundColor Yellow
 Write-Host "Agents: $($agentIds.Count)" -ForegroundColor Yellow
 Write-Host "API Endpoint: $apiUrl" -ForegroundColor Yellow
+Write-Host "Region: DE (mypurecloud.de)" -ForegroundColor Yellow
 Write-Host ""
 
 foreach ($agentId in $agentIds) {
