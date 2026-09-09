@@ -22,19 +22,19 @@ Write-Host ""
 foreach ($agentId in $agentIds) {
     $value = Get-Random -Minimum 100 -Maximum 601
     
-    $payload = @(@{
+    $payload = @{
         userId = $agentId
-        externalMetricDefinitionId = $externalMetricId
-        dateOccurred = $date
+        metricId = $externalMetricId
+        date = Get-Date -Format "yyyy-MM-dd"
         value = $value
-    }) | ConvertTo-Json -Depth 10
+    } | ConvertTo-Json
     
     Write-Host "Posting metric for Agent: $agentId" -ForegroundColor White
     Write-Host "Value: $value" -ForegroundColor White
     Write-Host "Payload: $payload" -ForegroundColor Gray
     
     try {
-        $response = & gc.exe analytics post externalmetrics "body=$payload" 2>&1
+        $response = & gc.exe post external-metrics gamification --body $payload 2>&1
         Write-Host "Response: $response" -ForegroundColor Gray
         Write-Host "Success - Total Sales Value: $value" -ForegroundColor Green
         $successCount = $successCount + 1
