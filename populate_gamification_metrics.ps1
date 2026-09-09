@@ -1,5 +1,5 @@
 # Genesys Gamification External Metric Populator
-# Uses PowerShell Invoke-RestMethod to call Genesys Cloud API v2
+# Uses gc.exe to make authenticated API v2 calls
 # Region: DE (mypurecloud.de)
 
 $externalMetricId = "800fb024-26d2-46f4-96e0-95a6ab170695"
@@ -11,7 +11,6 @@ $agentIds = @(
     "0d34f0b7-fad1-47d0-b593-964d44b265a2"
 )
 
-$apiUrl = "https://api.mypurecloud.de/api/v2/gamification/metrics/external"
 $date = Get-Date -Format "yyyy-MM-ddTHH:mm:ss.000Z"
 $successCount = 0
 $failCount = 0
@@ -22,7 +21,6 @@ Write-Host "=========================================" -ForegroundColor Cyan
 Write-Host "Metric: Total Sales Value" -ForegroundColor Yellow
 Write-Host "Timestamp: $date" -ForegroundColor Yellow
 Write-Host "Agents: $($agentIds.Count)" -ForegroundColor Yellow
-Write-Host "API Endpoint: $apiUrl" -ForegroundColor Yellow
 Write-Host "Region: DE (mypurecloud.de)" -ForegroundColor Yellow
 Write-Host ""
 
@@ -41,14 +39,15 @@ foreach ($agentId in $agentIds) {
     Write-Host "Payload: $body" -ForegroundColor Gray
     
     try {
-        $response = Invoke-RestMethod -Uri $apiUrl -Method Post -Body $body -ContentType "application/json" -ErrorAction Stop
+        # Use gc.exe to make the API call with authenticated session
+        $response = & gc.exe patch /api/v2/gamification/metrics/external --body $body 2>&1
         Write-Host "Response: $response" -ForegroundColor Gray
         Write-Host "Success - Total Sales Value: $value" -ForegroundColor Green
         $successCount = $successCount + 1
     }
     catch {
         Write-Host "Failed to post metric for Agent: $agentId" -ForegroundColor Red
-        Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "Error: $_" -ForegroundColor Red
         $failCount = $failCount + 1
     }
     
