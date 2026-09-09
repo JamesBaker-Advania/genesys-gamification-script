@@ -51,7 +51,8 @@ foreach ($agentId in $agentIds) {
         $result = & gc.exe analytics post externalmetrics "body=$payload" 2>&1
         Write-Host "✓ Success - Total Sales Value: $value" -ForegroundColor Green
         $successCount++
-    } catch {
+    }
+    catch {
         Write-Host "✗ Failed to post metric for Agent: $agentId" -ForegroundColor Red
         Write-Host "Error: $_" -ForegroundColor Red
         $failCount++
