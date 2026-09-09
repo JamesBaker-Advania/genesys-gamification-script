@@ -1,3 +1,6 @@
+# Genesys Gamification External Metric Populator
+# Uses Genesys Cloud API v2 to post external metrics
+
 $externalMetricId = "800fb024-26d2-46f4-96e0-95a6ab170695"
 $agentIds = @(
     "a481eb96-4b65-455a-91ff-6dd0d30524de",
@@ -24,8 +27,8 @@ foreach ($agentId in $agentIds) {
     
     $payload = @{
         userId = $agentId
-        metricId = $externalMetricId
-        date = Get-Date -Format "yyyy-MM-dd"
+        externalMetricDefinitionId = $externalMetricId
+        dateOccurred = $date
         value = $value
     } | ConvertTo-Json
     
@@ -34,7 +37,7 @@ foreach ($agentId in $agentIds) {
     Write-Host "Payload: $payload" -ForegroundColor Gray
     
     try {
-        $response = & gc.exe post external-metrics gamification --body $payload 2>&1
+        $response = & gc.exe exec "curl -X POST https://api.mypurecloud.com/api/v2/gamification/metrics/external -H 'Content-Type: application/json' -d '$payload'" 2>&1
         Write-Host "Response: $response" -ForegroundColor Gray
         Write-Host "Success - Total Sales Value: $value" -ForegroundColor Green
         $successCount = $successCount + 1
